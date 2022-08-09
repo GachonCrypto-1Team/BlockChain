@@ -24,6 +24,7 @@ class BlockChain:
     def __init__(self):
         #블록을 저장할 리스트를 설정합니다.
         self.chain = []
+        self.powlist=[]
         self.createGenesis()
 
         #초기 블록을 생성합니다.
@@ -82,6 +83,25 @@ class BlockChain:
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000" # nonce​
 
+    #powlist에 hash를 0000으로 만들수있는 정답값을 넣어줍니다.
+    def powvalid(self):
+        for block in self.chain:#powlist를 생성합니다.
+            current_block=json.dumps(vars(block))
+            my_dict = ast.literal_eval(current_block)
+            hash = my_dict['hash']
+            proof=self.pow(hash)
+            self.powlist.append(proof)
+        for i in range(len(self.chain)):#block과 powlist의 값을 비교합니다.
+            current_block=json.dumps(vars(self.chain[i]))
+            my_dict = ast.literal_eval(current_block)
+            hash = my_dict['hash']
+            if self.valid_proof(hash,self.powlist[i]) is False:
+                k=1
+                break
+        if k==1:
+            print("block이 잘못되었습니다.")
+        else:
+            print("block이 유효합니다.")
 start = time.time() #시간 측정
 newblockchain = BlockChain() #블록체인 객체 생성
 print(json.dumps(vars(newblockchain.chain[0]), indent=4))#블록체인 출력
@@ -102,4 +122,6 @@ proof = newblockchain.pow(last_hash)#블록체인의 마지막 블록 해시값�
 print(proof)
 print("===========================================")
 print(newblockchain.istransactionValid())#블록체인 거래내역 증명
+print(newblockchain.powvalid())#hash의 정답값을 활용하여 block의 유용성을 검증하기 위해서 powlist를 생성합니다.
+print(newblockchain.powlist)
 print(f"{end - start:.5f} sec")#완료시간 출력
